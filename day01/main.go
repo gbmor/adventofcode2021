@@ -3,14 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"time"
 )
 
 func getDepths() ([]int, error) {
-	b, err := ioutil.ReadFile("input.txt")
+	b, err := os.ReadFile("input.txt")
 	if err != nil {
 		return nil, err
 	}
