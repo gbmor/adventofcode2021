@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var flagTest = flag.Bool("test", false, "use the test data")
+var flagTest = flag.Bool("test", false, "use the test input")
 
 type BingoBoard struct {
 	Nums          [][]int
@@ -53,7 +53,7 @@ func bingo(b *BingoBoard) bool {
 	return false
 }
 
-func getBingoData(test bool) ([]int, []BingoBoard) {
+func getBingoData() ([]int, []BingoBoard) {
 	data := `7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
 22 13 17 11  0
@@ -74,7 +74,7 @@ func getBingoData(test bool) ([]int, []BingoBoard) {
 22 11 13  6  5
  2  0 12  3  7`
 
-	if !test {
+	if !*flagTest {
 		b, err := os.ReadFile("input.txt")
 		if err != nil {
 			fmt.Println(err.Error())
@@ -155,7 +155,7 @@ func exec(picks []int, boards []BingoBoard) (int, int) {
 func main() {
 	flag.Parse()
 
-	picks, boards := getBingoData(*flagTest)
+	picks, boards := getBingoData()
 	start := time.Now()
 	p1, p2 := exec(picks, boards)
 	finish := time.Since(start)

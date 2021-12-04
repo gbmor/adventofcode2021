@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+	"flag"
 	"fmt"
 	"os"
 	"strconv"
@@ -9,28 +9,26 @@ import (
 	"time"
 )
 
-func getCommands(test bool) []string {
-	if test {
-		return []string{
-			"forward 5",
-			"down 5",
-			"forward 8",
-			"up 3",
-			"down 8",
-			"forward 2",
+var flagTest = flag.Bool("test", false, "use the test input")
+
+func getCommands() []string {
+	data := `forward 5
+down 5
+forward 8
+up 3
+down 8
+forward 2`
+
+	if !*flagTest {
+		b, err := os.ReadFile("input.txt")
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
 		}
+		data = string(b)
 	}
-	b, err := os.ReadFile("input.txt")
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	split := bytes.Split(b, []byte("\n"))
-	out := make([]string, len(split))
-	for i, e := range split {
-		out[i] = string(e)
-	}
-	return out
+
+	return strings.Split(data, "\n")
 }
 
 func exec(input []string) (int, int) {
@@ -64,9 +62,12 @@ func exec(input []string) (int, int) {
 }
 
 func main() {
-	commands := getCommands(false)
+	flag.Parse()
+
+	commands := getCommands()
 	start := time.Now()
 	p1, p2 := exec(commands)
 	finish := time.Since(start)
+
 	fmt.Printf("Part 1: %d\nPart 2: %d\nTime: %s\n", p1, p2, finish)
 }

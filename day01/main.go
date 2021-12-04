@@ -1,53 +1,72 @@
 package main
 
 import (
-	"bytes"
+	"flag"
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
-func getDepths() ([]int, error) {
-	b, err := os.ReadFile("input.txt")
-	if err != nil {
-		return nil, err
+var flagTest = flag.Bool("test", false, "use the test input")
+
+func getDepthReadings() []int {
+	data := `199
+200
+208
+210
+200
+207
+240
+269
+260
+263`
+
+	if !*flagTest {
+		b, err := os.ReadFile("input.txt")
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		data = string(b)
 	}
-	lines := bytes.Split(b, []byte("\n"))
+
+	lines := strings.Split(data, "\n")
 	depths := make([]int, len(lines))
 	for i, e := range lines {
-		d, err := strconv.Atoi(string(e))
+		d, err := strconv.Atoi(e)
 		if err != nil {
-			return nil, err
+			fmt.Println(err.Error())
+			os.Exit(1)
 		}
 		depths[i] = d
 	}
-	return depths, nil
+
+	return depths
 }
 
-func calc(depths []int) (int, int) {
-	count := 0
-	count2 := 0
+func countDepthIncreases(depths []int) (int, int) {
+	perReadingCount := 0
+	slidingWindowCount := 0
 	for i := 1; i < len(depths); i++ {
 		if depths[i-1] < depths[i] {
-			count++
+			perReadingCount++
 		}
 		if i > 2 && depths[i-3] < depths[i] {
-			count2++
+			slidingWindowCount++
 		}
 	}
-	return count, count2
+	return perReadingCount, slidingWindowCount
 }
 
 func main() {
-	depths, err := getDepths()
-	if err != nil {
-		fmt.Printf("%s\n", err)
-		os.Exit(1)
-	}
+	flag.Parse()
 
+	depths := getDepthReadings()
 	start := time.Now()
-	p1, p2 := calc(depths)
+	p1, p2 := countDepthIncreases(depths)
 	done := time.Since(start)
+
 	fmt.Printf("Part 1: %d\nPart 2: %d\nTime: %s\n", p1, p2, done)
 }

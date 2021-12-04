@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -10,7 +9,7 @@ import (
 	"time"
 )
 
-var flagTest = flag.Bool("test", false, "use the test data")
+var flagTest = flag.Bool("test", false, "use the test input")
 
 var partTwoByteMap = map[bool]map[bool]byte{
 	true: {
@@ -23,35 +22,30 @@ var partTwoByteMap = map[bool]map[bool]byte{
 	},
 }
 
-func getReport(test bool) []string {
-	if test {
-		return []string{
-			"00100",
-			"11110",
-			"10110",
-			"10111",
-			"10101",
-			"01111",
-			"00111",
-			"11100",
-			"10000",
-			"11001",
-			"00010",
-			"01010",
+func getReport() []string {
+	data := `00100
+11110
+10110
+10111
+10101
+01111
+00111
+11100
+10000
+11001
+00010
+01010`
+
+	if !*flagTest {
+		b, err := os.ReadFile("input.txt")
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
 		}
+		data = string(b)
 	}
 
-	b, err := os.ReadFile("input.txt")
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	split := bytes.Split(b, []byte("\n"))
-	out := make([]string, len(split))
-	for i, e := range split {
-		out[i] = string(e)
-	}
-	return out
+	return strings.Split(data, "\n")
 }
 
 func powerConsumption(input []string) int64 {
@@ -113,7 +107,7 @@ func lifeSupportRating(oxygen bool, arr []string, current int) []string {
 func main() {
 	flag.Parse()
 
-	commands := getReport(*flagTest)
+	commands := getReport()
 	start := time.Now()
 	p1 := powerConsumption(commands)
 	p1time := time.Since(start)
@@ -131,7 +125,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	commands = getReport(*flagTest)
+	commands = getReport()
 	for i := range commands[0] {
 		commands = lifeSupportRating(false, commands, i)
 		if len(commands) == 1 {
