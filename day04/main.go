@@ -12,29 +12,40 @@ import (
 var flagTest = flag.Bool("test", false, "use the test input")
 
 type BingoBoard struct {
-	Nums          [][]int
-	Winner        bool
-	WinningNumber int
-	Answer        int
+	Nums        [][]int
+	BingoNumber int
+
+	// Answer is the sum of the uncalled numbers multiplied by
+	// the called number that earned this board bingo.
+	Answer int
 }
 
 func makeBoards(input []string) []BingoBoard {
 	out := make([]BingoBoard, len(input))
+
 	for i, e := range input {
 		out[i].Nums = make([][]int, 5)
 		rows := strings.Split(e, "\n")
+
 		for j, k := range rows {
 			out[i].Nums[j] = make([]int, 5)
 			nums := strings.Fields(k)
+
 			for jfc, stop := range nums {
-				out[i].Nums[j][jfc], _ = strconv.Atoi(stop)
+				n, err := strconv.Atoi(stop)
+				if err != nil {
+					fmt.Println(err.Error())
+					os.Exit(1)
+				}
+				out[i].Nums[j][jfc] = n
 			}
 		}
 	}
+
 	return out
 }
 
-func bingo(b *BingoBoard) bool {
+func (b *BingoBoard) bingoThisRound(currentNumber int) bool {
 	for i := 0; i < 5; i++ {
 		colCount := 0
 		rowCount := 0
@@ -47,10 +58,16 @@ func bingo(b *BingoBoard) bool {
 			}
 		}
 		if colCount == 5 || rowCount == 5 {
+			b.BingoNumber = currentNumber
 			return true
 		}
 	}
+
 	return false
+}
+
+func (b *BingoBoard) alreadyHasBingo() bool {
+	return b.BingoNumber > 0
 }
 
 func getBingoData() ([]int, []BingoBoard) {
@@ -101,11 +118,12 @@ func getBingoData() ([]int, []BingoBoard) {
 // This solution is a tragedy, but it works.
 // First returned int is the first winning board's non-picked-numbers summed and multiplied by
 // the picked number that caused it to win. Second is the same but for the last winning board.
-func exec(picks []int, boards []BingoBoard) (int, int) {
+func cheatAtBingo(picks []int, boards []BingoBoard) (int, int) {
 	boardsInOrder := make([]BingoBoard, 0)
+
 	for _, e := range picks {
 		for j, k := range boards {
-			if k.Winner {
+			if k.alreadyHasBingo() {
 				continue
 			}
 			for _, dearGod := range k.Nums {
@@ -121,9 +139,7 @@ func exec(picks []int, boards []BingoBoard) (int, int) {
 					break
 				}
 			}
-			if bingo(&k) {
-				boards[j].Winner = true
-				boards[j].WinningNumber = e
+			if boards[j].bingoThisRound(e) {
 				boardsInOrder = append(boardsInOrder, boards[j])
 			}
 		}
@@ -136,6 +152,7 @@ func exec(picks []int, boards []BingoBoard) (int, int) {
 		boardsInOrder[0],
 		boardsInOrder[len(boardsInOrder)-1],
 	}
+
 	for i := 0; i < 5; i++ {
 		for j := 0; j < 5; j++ {
 			for k := range theTwo {
@@ -146,8 +163,9 @@ func exec(picks []int, boards []BingoBoard) (int, int) {
 			}
 		}
 	}
-	theTwo[0].Answer *= theTwo[0].WinningNumber
-	theTwo[1].Answer *= theTwo[1].WinningNumber
+
+	theTwo[0].Answer *= theTwo[0].BingoNumber
+	theTwo[1].Answer *= theTwo[1].BingoNumber
 
 	return theTwo[0].Answer, theTwo[1].Answer
 }
@@ -157,8 +175,8 @@ func main() {
 
 	picks, boards := getBingoData()
 	start := time.Now()
-	p1, p2 := exec(picks, boards)
-	finish := time.Since(start)
+	winningBoard, losingBoard := cheatAtBingo(picks, boards)
+	execTime := time.Since(start)
 
-	fmt.Printf("Part 1:\t%d\nPart 2:\t%d\nTime:\t%s\n", p1, p2, finish)
+	fmt.Printf("Part 1:\t%d\nPart 2:\t%d\nTime:\t%s\n", winningBoard, losingBoard, execTime)
 }
