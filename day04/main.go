@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -12,32 +11,17 @@ import (
 
 var flagTest = flag.Bool("test", false, "use the test input")
 
-type BingoBoards []BingoBoard
-
-func (b BingoBoards) Len() int {
-	return len(b)
-}
-
-func (b BingoBoards) Less(i, j int) bool {
-	return b[i].BingoPosition < b[j].BingoPosition
-}
-
-func (b BingoBoards) Swap(i, j int) {
-	b[i], b[j] = b[j], b[i]
-}
-
 type BingoBoard struct {
-	Nums          [][]int
-	BingoNumber   int
-	BingoPosition int
+	Nums        [][]int
+	BingoNumber int
 
 	// Answer is the sum of the uncalled numbers multiplied by
 	// the called number that earned this board bingo.
 	Answer int
 }
 
-func makeBoards(input []string) BingoBoards {
-	out := make(BingoBoards, len(input))
+func makeBoards(input []string) []BingoBoard {
+	out := make([]BingoBoard, len(input))
 
 	for i, e := range input {
 		out[i].Nums = make([][]int, 5)
@@ -87,7 +71,7 @@ func (b *BingoBoard) alreadyHasBingo() bool {
 	return b.BingoNumber > -1
 }
 
-func getBingoData() ([]int, BingoBoards) {
+func getBingoData() ([]int, []BingoBoard) {
 	data := `7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
 
 22 13 17 11  0
@@ -135,8 +119,10 @@ func getBingoData() ([]int, BingoBoards) {
 // This solution is a tragedy, but it works.
 // First returned int is the first winning board's non-picked-numbers summed and multiplied by
 // the picked number that caused it to win. Second is the same but for the last winning board.
-func cheatAtBingo(picks []int, boards BingoBoards) (int, int) {
+func cheatAtBingo(picks []int, boards []BingoBoard) (int, int) {
 	bingoCount := 0
+	var first *BingoBoard
+	var last *BingoBoard
 
 	for _, e := range picks {
 		for j, k := range boards {
@@ -158,7 +144,11 @@ func cheatAtBingo(picks []int, boards BingoBoards) (int, int) {
 			}
 			if boards[j].bingoCheckThisRound(e) {
 				bingoCount++
-				boards[j].BingoPosition = bingoCount
+				if bingoCount == 1 {
+					first = &boards[j]
+				} else if bingoCount == len(boards) {
+					last = &boards[j]
+				}
 			}
 		}
 		if bingoCount == len(boards) {
@@ -166,26 +156,23 @@ func cheatAtBingo(picks []int, boards BingoBoards) (int, int) {
 		}
 	}
 
-	sort.Sort(boards)
-	tail := len(boards) - 1
-
 	for i := 0; i < 5; i++ {
 		for j := 0; j < 5; j++ {
-			pos := boards[0].Nums[i][j]
+			pos := first.Nums[i][j]
 			if pos != -1 {
-				boards[0].Answer += pos
+				first.Answer += pos
 			}
-			pos = boards[tail].Nums[i][j]
+			pos = last.Nums[i][j]
 			if pos != -1 {
-				boards[tail].Answer += pos
+				last.Answer += pos
 			}
 		}
 	}
 
-	boards[0].Answer *= boards[0].BingoNumber
-	boards[tail].Answer *= boards[tail].BingoNumber
+	first.Answer *= first.BingoNumber
+	last.Answer *= last.BingoNumber
 
-	return boards[0].Answer, boards[tail].Answer
+	return first.Answer, last.Answer
 }
 
 func main() {
