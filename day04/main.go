@@ -25,6 +25,7 @@ func makeBoards(input []string) []BingoBoard {
 
 	for i, e := range input {
 		out[i].Nums = make([][]int, 5)
+		out[i].BingoNumber = -1
 		rows := strings.Split(e, "\n")
 
 		for j, k := range rows {
@@ -67,7 +68,7 @@ func (b *BingoBoard) bingoThisRound(currentNumber int) bool {
 }
 
 func (b *BingoBoard) alreadyHasBingo() bool {
-	return b.BingoNumber > 0
+	return b.BingoNumber > -1
 }
 
 func getBingoData() ([]int, []BingoBoard) {
