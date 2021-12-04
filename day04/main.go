@@ -19,7 +19,7 @@ func (b BingoBoards) Len() int {
 }
 
 func (b BingoBoards) Less(i, j int) bool {
-	return b[i].BingoTime < b[j].BingoTime
+	return b[i].BingoPosition < b[j].BingoPosition
 }
 
 func (b BingoBoards) Swap(i, j int) {
@@ -27,9 +27,9 @@ func (b BingoBoards) Swap(i, j int) {
 }
 
 type BingoBoard struct {
-	Nums        [][]int
-	BingoNumber int
-	BingoTime   int64
+	Nums          [][]int
+	BingoNumber   int
+	BingoPosition int
 
 	// Answer is the sum of the uncalled numbers multiplied by
 	// the called number that earned this board bingo.
@@ -76,7 +76,6 @@ func (b *BingoBoard) bingoCheckThisRound(currentNumber int) bool {
 		}
 		if colCount == 5 || rowCount == 5 {
 			b.BingoNumber = currentNumber
-			b.BingoTime = time.Now().UnixMicro()
 			return true
 		}
 	}
@@ -159,6 +158,7 @@ func cheatAtBingo(picks []int, boards BingoBoards) (int, int) {
 			}
 			if boards[j].bingoCheckThisRound(e) {
 				bingoCount++
+				boards[j].BingoPosition = bingoCount
 			}
 		}
 		if bingoCount == len(boards) {
