@@ -78,6 +78,7 @@ func getData() [][]Point {
 }
 
 func exec(input [][]Point, includeDiagonals bool) int {
+	// using: pointMap[x][y] = count
 	pointMap := make(map[int]map[int]int)
 	for _, l := range input {
 		if !includeDiagonals && l[0].x != l[1].x && l[0].y != l[1].y {
@@ -92,6 +93,7 @@ func exec(input [][]Point, includeDiagonals bool) int {
 		} else if l[0].x > l[1].x {
 			dx = -1
 		}
+
 		if l[0].y < l[1].y {
 			dy = 1
 		} else if l[0].y > l[1].y {
