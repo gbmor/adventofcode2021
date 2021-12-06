@@ -32,16 +32,19 @@ func getLanternfish() []int {
 	return fish
 }
 
-func doFishThings(lanternfish []int, days int) int64 {
+func doFishThings(lanternfish []int) (int64, int64) {
+	maxDays := 256
+
 	// keep track of how many lanternfish are spawning each day,
 	// instead of keeping track of when a given lanternfish spawns.
-	fishReadyEachDay := make([]int64, days)
+	fishReadyEachDay := make([]int64, maxDays)
 	for i := range lanternfish {
 		fishReadyEachDay[lanternfish[i]]++
 	}
 
-	fishCount := int64(len(lanternfish))
-	for i := 0; i < days; i++ {
+	fishCountDay256 := int64(len(lanternfish))
+	fishCountDay80 := int64(len(lanternfish))
+	for i := 0; i < maxDays; i++ {
 		nextSpawnForFish := i + 7
 		nextSpawnForNewFish := i + 9
 
@@ -59,10 +62,13 @@ func doFishThings(lanternfish []int, days int) int64 {
 		}
 
 		// total so far
-		fishCount += spawning
+		fishCountDay256 += spawning
+		if i < 80 {
+			fishCountDay80 += spawning
+		}
 	}
 
-	return fishCount
+	return fishCountDay80, fishCountDay256
 }
 
 func main() {
@@ -70,12 +76,8 @@ func main() {
 
 	data := getLanternfish()
 	start := time.Now()
-	p1 := doFishThings(data, 80)
-	p1Time := time.Since(start)
+	p1, p2 := doFishThings(data)
+	elapsedTime := time.Since(start)
 
-	start = time.Now()
-	p2 := doFishThings(data, 256)
-	p2Time := time.Since(start)
-
-	fmt.Printf("Part 1:\t\t%d\t\t%s\nPart 2:\t\t%d\t%s\nTotal Time:\t\t\t%s\n", p1, p1Time, p2, p2Time, p1Time+p2Time)
+	fmt.Printf("Lanternfish Population\n80 Days:\t%d\n256 Days:\t%d\nTime:\t\t%s\n", p1, p2, elapsedTime)
 }
